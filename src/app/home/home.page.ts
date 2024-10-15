@@ -13,7 +13,7 @@ export class HomePage {
 
   private localStream!: MediaStream;
   private peerConnection!: RTCPeerConnection;
-  private socket = io('http://localhost:3000'); // Change to your server URL
+  private socket = io('https://call-app-bkdnode-iota.vercel.app/'); // Change to your server URL
 
   constructor() {
     this.socket.on('offer', (offer) => this.handleOffer(offer));
