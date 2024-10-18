@@ -13,9 +13,20 @@ export class HomePage {
 
   private localStream!: MediaStream;
   private peerConnection!: RTCPeerConnection;
-  private socket = io('https://callappbkdnode.onrender.com/'); // Change to your server URL
+  private socket = io('https://callappbkdnode-1.onrender.com/', {
+    path: '/socket.io',
+    transports: ['websocket']
+  });
+
+  private peerConnectionConfig = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },  // Public STUN server
+      // Optionally, add TURN servers here for better connectivity
+    ]
+  };
 
   constructor() {
+    // Listening to offer, answer, and ICE candidates from socket
     this.socket.on('offer', (offer) => this.handleOffer(offer));
     this.socket.on('answer', (answer) => this.handleAnswer(answer));
     this.socket.on('ice-candidate', (candidate) => this.handleICECandidate(candidate));
@@ -39,7 +50,7 @@ export class HomePage {
   }
 
   createPeerConnection() {
-    this.peerConnection = new RTCPeerConnection();
+    this.peerConnection = new RTCPeerConnection(this.peerConnectionConfig);
 
     // Handle ICE candidate event
     this.peerConnection.onicecandidate = (event) => {
@@ -54,7 +65,7 @@ export class HomePage {
     };
   }
 
-  async handleOffer(offer:any) {
+  async handleOffer(offer: any) {
     // Handle offer from remote peer
     this.createPeerConnection();
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
@@ -65,14 +76,13 @@ export class HomePage {
     this.socket.emit('answer', answer);
   }
 
-  async handleAnswer(answer:any) {
+  async handleAnswer(answer: any) {
     // Set remote description when receiving an answer
     await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
   }
 
-  handleICECandidate(candidate:any) {
+  handleICECandidate(candidate: any) {
     // Add received ICE candidate to peer connection
     this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
   }
-
 }
